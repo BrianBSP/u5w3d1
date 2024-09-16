@@ -1,20 +1,16 @@
 package brianpelinku.u5w3d1.controllers;
 
 import brianpelinku.u5w3d1.entities.Dipendente;
-import brianpelinku.u5w3d1.exceptions.BadRequestException;
 import brianpelinku.u5w3d1.payloads.NewDipendenteDTO;
 import brianpelinku.u5w3d1.payloads.NewDipendenteRespDTO;
 import brianpelinku.u5w3d1.services.DipendenteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/dipendenti")
@@ -23,21 +19,6 @@ public class DipendenteController {
     @Autowired
     private DipendenteService dipendenteService;
 
-    // POST --> creo un nuovo record --- +body
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public NewDipendenteRespDTO createDipendente(@RequestBody @Validated NewDipendenteDTO body, BindingResult validation) {
-        if (validation.hasErrors()) {
-            String messages = validation
-                    .getAllErrors()
-                    .stream()
-                    .map(error -> error.getDefaultMessage())
-                    .collect(Collectors.joining(". "));
-            throw new BadRequestException("Segnalazione Errori nel Payload. " + messages);
-        } else {
-            return new NewDipendenteRespDTO(this.dipendenteService.saveDipendente(body).getId());
-        }
-    }
 
     // GET All
     @GetMapping

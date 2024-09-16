@@ -1,13 +1,19 @@
 package brianpelinku.u5w3d1.controllers;
 
+import brianpelinku.u5w3d1.exceptions.BadRequestException;
 import brianpelinku.u5w3d1.payloads.DipendenteLoginDTO;
 import brianpelinku.u5w3d1.payloads.DipendenteLoginResoDTO;
+import brianpelinku.u5w3d1.payloads.NewDipendenteDTO;
+import brianpelinku.u5w3d1.payloads.NewDipendenteRespDTO;
 import brianpelinku.u5w3d1.services.AuthService;
+import brianpelinku.u5w3d1.services.DipendenteService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth")
@@ -16,8 +22,27 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private DipendenteService dipendenteService;
+
     @PostMapping("/login")
-    public DipendenteLoginResoDTO login(@RequestBody DipendenteLoginDTO body){
+    public DipendenteLoginResoDTO login(@RequestBody DipendenteLoginDTO body) {
         return new DipendenteLoginResoDTO(this.authService.checkCredenzialiAndGeneraToken(body));
+    }
+
+    // POST --> creo un nuovo record --- +body
+    @PostMapping("/register")
+    @ResponseStatus(HttpStatus.CREATED)
+    public NewDipendenteRespDTO createDipendente(@RequestBody @Validated NewDipendenteDTO body, BindingResult validation) {
+        if (validation.hasErrors()) {
+            String messages = validation
+                    .getAllErrors()
+                    .stream()
+                    .map(error -> error.getDefaultMessage())
+                    .collect(Collectors.joining(". "));
+            throw new BadRequestException("Segnalazione Errori nel Payload. " + messages);
+        } else {
+            return new NewDipendenteRespDTO(this.dipendenteService.saveDipendente(body).getId());
+        }
     }
 }

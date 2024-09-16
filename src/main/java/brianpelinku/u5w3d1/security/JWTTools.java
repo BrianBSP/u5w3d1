@@ -1,6 +1,7 @@
 package brianpelinku.u5w3d1.security;
 
 import brianpelinku.u5w3d1.entities.Dipendente;
+import brianpelinku.u5w3d1.exceptions.UnauthorizedException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,14 +16,22 @@ public class JWTTools {
     private String secret;
 
     public String createToken(Dipendente dipendente) {
+        // creo il token
         return Jwts.builder()
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7))
-                .subject(String.valueOf(dipendente.getId()))
-                .signWith(Keys.hmacShaKeyFor(secret.getBytes()))
+                .issuedAt(new Date(System.currentTimeMillis())) // data di creazione
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7)) // data scadenza
+                .subject(String.valueOf(dipendente.getId())) // dati dipendente (id) --> no dati sensibili
+                .signWith(Keys.hmacShaKeyFor(secret.getBytes())) // firma
                 .compact();
 
     }
 
-    // public void verificaToken(String token){}
+    public void verificaToken(String token) {
+        // controllo l'integrità del token
+        try {
+            Jwts.parser().verifyWith(Keys.hmacShaKeyFor(secret.getBytes())).build().parse(token);
+        } catch (Exception e) {
+            throw new UnauthorizedException("Problemi con il token.");
+        }
+    }
 }
